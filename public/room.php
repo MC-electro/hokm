@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-if (empty($_SESSION['user_id'])) { header('Location: /public/login.php'); exit; }
+if (empty($_SESSION['user_id'])) { header('Location: /login.php'); exit; }
 $roomId = (int)($_GET['id'] ?? 0);
 $inviteCode = h($_GET['code'] ?? '');
 ?>
@@ -14,10 +14,10 @@ $inviteCode = h($_GET['code'] ?? '');
 <body data-room-id="<?= $roomId ?>" data-invite-code="<?= $inviteCode ?>">
 <header class="topbar glass">
   <h1>اتاق بازی</h1>
-  <nav><a href="/public/lobby.php">بازگشت به لابی</a></nav>
+  <nav><a href="/lobby.php">بازگشت به لابی</a></nav>
 </header>
 <main class="room-layout">
-  <section class="glass card">
+  <section class="glass panel">
     <h2>بازیکنان اتاق</h2>
     <ul id="players"></ul>
     <button id="startGameBtn">شروع بازی</button>
@@ -29,7 +29,7 @@ $inviteCode = h($_GET['code'] ?? '');
     <p id="roomMsg"></p>
   </section>
 
-  <section class="glass card game-section">
+  <section class="glass panel game-section">
     <h2>میز بازی حکم</h2>
     <div id="statusBar"></div>
     <div class="table-board" id="tableBoard">
@@ -58,7 +58,7 @@ $inviteCode = h($_GET['code'] ?? '');
     </div>
   </section>
 
-  <section class="glass card">
+  <section class="glass panel">
     <h2>چت اتاق</h2>
     <div id="chatBox" class="chat-box"></div>
     <form id="chatForm" class="chat-form">

@@ -100,7 +100,7 @@ class RoomService
             'players' => $players,
             'public_rooms' => $publicRooms,
             'online_users' => $online,
-            'invite_link' => '/public/room.php?id=' . $room['id'] . '&code=' . $room['invite_code'],
+            'invite_link' => '/room.php?id=' . $room['id'] . '&code=' . $room['invite_code'],
         ];
     }
 }

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body class="auth-page">
-<main class="glass card auth-card">
+<main class="glass panel auth-card">
   <h1>ثبت‌نام</h1>
   <form id="registerForm" class="form">
     <label>نام کاربری
@@ -21,7 +21,7 @@
       <input type="password" name="password" required>
     </label>
     <button type="submit">ثبت‌نام</button>
-    <p class="muted">قبلاً عضو شده‌اید؟ <a href="/public/login.php">ورود</a></p>
+    <p class="muted">قبلاً عضو شده‌اید؟ <a href="/login.php">ورود</a></p>
     <p id="msg"></p>
   </form>
 </main>

@@ -32,8 +32,8 @@
    ```bash
    mysql -u root -p < sql/schema.sql
    ```
-4. دایرکتوری `public` را به عنوان DocumentRoot معرفی کنید (یا با پیشوند `/public` اجرا کنید).
-5. وارد `http://localhost/public` شوید.
+4. دایرکتوری `public` را به عنوان DocumentRoot معرفی کنید (یا با مسیر ریشه وب اجرا کنید).
+5. وارد `http://localhost` شوید.
 
 ## نکات فنی
 
@@ -44,19 +44,19 @@
 
 ## مسیرهای API
 
-- `/public/api/register.php`
-- `/public/api/login.php`
-- `/public/api/logout.php`
-- `/public/api/create_room.php`
-- `/public/api/join_room.php`
-- `/public/api/room_state.php`
-- `/public/api/start_game.php`
-- `/public/api/game_state.php`
-- `/public/api/play_card.php`
-- `/public/api/choose_trump.php`
-- `/public/api/team_name.php`
-- `/public/api/chat.php`
-- `/public/api/leaderboard.php`
+- `/api/register.php`
+- `/api/login.php`
+- `/api/logout.php`
+- `/api/create_room.php`
+- `/api/join_room.php`
+- `/api/room_state.php`
+- `/api/start_game.php`
+- `/api/game_state.php`
+- `/api/play_card.php`
+- `/api/choose_trump.php`
+- `/api/team_name.php`
+- `/api/chat.php`
+- `/api/leaderboard.php`
 
 ## امکانات تکمیلی
 

@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-<header class="topbar glass"><h1>رتبه‌بندی بازیکنان</h1><nav><a href="/public/lobby.php">لابی</a></nav></header>
-<main class="glass card">
+<header class="topbar glass"><h1>رتبه‌بندی بازیکنان</h1><nav><a href="/lobby.php">لابی</a></nav></header>
+<main class="glass panel">
   <table class="leaderboard-table">
     <thead><tr><th>رتبه</th><th>بازیکن</th><th>بازی</th><th>برد</th><th>باخت</th><th>امتیاز</th></tr></thead>
     <tbody id="leaderboardBody"></tbody>

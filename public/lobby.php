@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-if (empty($_SESSION['user_id'])) { header('Location: /public/login.php'); exit; }
+if (empty($_SESSION['user_id'])) { header('Location: /login.php'); exit; }
 ?>
 <!doctype html>
 <html lang="fa" dir="rtl">
@@ -13,12 +13,12 @@ if (empty($_SESSION['user_id'])) { header('Location: /public/login.php'); exit; 
 <header class="topbar glass">
   <h1>لابی بازی حکم</h1>
   <nav>
-    <a href="/public/leaderboard.php">لیدربرد</a>
+    <a href="/leaderboard.php">لیدربرد</a>
     <a href="#" id="logoutBtn">خروج</a>
   </nav>
 </header>
 <main class="layout-two">
-  <section class="glass card">
+  <section class="glass panel">
     <h2>ساخت اتاق</h2>
     <form id="createRoomForm" class="form">
       <label>نام اتاق<input name="name" required></label>
@@ -27,11 +27,11 @@ if (empty($_SESSION['user_id'])) { header('Location: /public/login.php'); exit; 
     </form>
     <p id="createMsg"></p>
   </section>
-  <section class="glass card">
+  <section class="glass panel">
     <h2>اتاق‌های عمومی</h2>
     <div id="rooms"></div>
   </section>
-  <section class="glass card">
+  <section class="glass panel">
     <h2>کاربران آنلاین</h2>
     <ul id="onlineUsers"></ul>
   </section>

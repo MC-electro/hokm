@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body class="auth-page">
-  <main class="glass card auth-card">
+  <main class="glass panel auth-card">
     <h1>ورود به بازی حکم</h1>
     <form id="loginForm" class="form">
       <label>نام کاربری یا ایمیل
@@ -18,7 +18,7 @@
         <input type="password" name="password" required>
       </label>
       <button type="submit">ورود</button>
-      <p class="muted">حساب ندارید؟ <a href="/public/register.php">ثبت‌نام</a></p>
+      <p class="muted">حساب ندارید؟ <a href="/register.php">ثبت‌نام</a></p>
       <p id="msg"></p>
     </form>
   </main>
