@@ -222,7 +222,9 @@ class GameService
                 $teamBPoints++;
             }
 
-            $newDealer = (((int)$game['dealer_position']) + 1) % 4;
+            $winningTeamIsA = $teamATricks > $teamBTricks;
+            $currentDealer = (int)$game['dealer_position'];
+            $newDealer = $this->resolveNextDealer($currentDealer, $winningTeamIsA);
             $phase = ($teamAPoints >= 7 || $teamBPoints >= 7) ? 'finished' : 'team_naming';
             $stmt = $pdo->prepare('UPDATE games SET hands_json = :hands, current_trick_json = :trick, current_turn = :turn, trick_leader_position = :leader, team_a_tricks = :a_tricks, team_b_tricks = :b_tricks, team_a_points = :a_points, team_b_points = :b_points, dealer_position = :dealer, phase = :phase, status = :status, revision = revision + 1 WHERE id = :id');
             $stmt->execute([
@@ -337,6 +339,16 @@ class GameService
         }
 
         return (int)$winner['seat'];
+    }
+
+    private function resolveNextDealer(int $currentDealer, bool $winningTeamIsA): int
+    {
+        $dealerInTeamA = in_array($currentDealer, [0, 2], true);
+        if (($winningTeamIsA && $dealerInTeamA) || (!$winningTeamIsA && !$dealerInTeamA)) {
+            return $currentDealer;
+        }
+
+        return $winningTeamIsA ? 0 : 1;
     }
 
     private function fetchPlayers(int $roomId): array
