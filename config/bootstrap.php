@@ -2,12 +2,14 @@
 $config = require __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
     session_name($config['app']['session_name']);
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
         'domain' => '',
-        'secure' => false,
+        'secure' => $isHttps,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);

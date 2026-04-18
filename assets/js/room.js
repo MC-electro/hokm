@@ -5,6 +5,13 @@ let gameId = null;
 let revision = 0;
 let lastChatId = 0;
 let meSeat = 0;
+let roomPollDelay = 1500;
+let chatPollDelay = 1500;
+let roomPollTimer = null;
+let chatPollTimer = null;
+let roomRequestInFlight = false;
+let chatRequestInFlight = false;
+let gameResultShown = false;
 
 const seatMap = { 0: 'پایین', 1: 'چپ', 2: 'بالا', 3: 'راست' };
 
@@ -26,16 +33,43 @@ async function ensureMembership() {
   const form = new FormData();
   form.append('room_id', roomId);
   if (inviteCode) form.append('invite_code', inviteCode);
-  await fetch('/public/api/join_room.php', { method: 'POST', body: form });
+  await fetch('/public/api/join_room.php', { method: 'POST', body: form, credentials: 'same-origin' });
+}
+
+async function apiRequest(url, options = {}) {
+  try {
+    const res = await fetch(url, { credentials: 'same-origin', ...options });
+    const text = await res.text();
+    let data = null;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (!res.ok) {
+        console.warn('پاسخ JSON نامعتبر:', url, text.slice(0, 500));
+      }
+      return { ok: false, message: 'پاسخ نامعتبر از سرور دریافت شد.', status: res.status };
+    }
+
+    if (!res.ok && data?.ok !== false) {
+      return { ok: false, message: data?.message || 'خطای سرور.', status: res.status };
+    }
+    return data;
+  } catch (err) {
+    return { ok: false, message: 'ارتباط با سرور برقرار نشد.' };
+  }
 }
 
 async function pollRoom() {
-  const res = await fetch(`/public/api/room_state.php?room_id=${roomId}`);
-  const data = await res.json();
+  if (roomRequestInFlight) return;
+  roomRequestInFlight = true;
+  const data = await apiRequest(`/public/api/room_state.php?room_id=${roomId}`);
   if (!data.ok) {
     document.getElementById('roomMsg').textContent = data.message;
+    roomPollDelay = Math.min(roomPollDelay + 1500, 10000);
+    roomRequestInFlight = false;
     return;
   }
+  roomPollDelay = 1500;
 
   document.getElementById('inviteLink').value = `${location.origin}${data.invite_link}`;
   document.getElementById('players').innerHTML = data.players.map(p => `<li>${p.username} - جایگاه ${seatMap[p.seat_position]}</li>`).join('');
@@ -44,6 +78,7 @@ async function pollRoom() {
   if (myPlayer) meSeat = Number(myPlayer.seat_position);
 
   await pollGame();
+  roomRequestInFlight = false;
 }
 
 function relativeSeat(targetSeat) {
@@ -73,8 +108,7 @@ function renderSeats(players, game) {
 }
 
 async function pollGame() {
-  const res = await fetch(`/public/api/game_state.php?room_id=${roomId}&revision=${revision}`);
-  const data = await res.json();
+  const data = await apiRequest(`/public/api/game_state.php?room_id=${roomId}&revision=${revision}`);
   if (!data.ok || !data.has_update || !data.state) return;
 
   revision = data.revision;
@@ -82,8 +116,12 @@ async function pollGame() {
   gameId = game.id;
 
   renderSeats(players, game);
+  document.getElementById('scoreHeader').innerHTML = `
+    <span class="team team-a">${game.team_a_name}: ${game.team_a_points}</span>
+    <span class="team team-b">${game.team_b_name}: ${game.team_b_points}</span>
+  `;
   document.getElementById('statusBar').innerHTML = `
-    <p>نوبت: جایگاه ${seatMap[game.current_turn]} | حکم: ${game.trump_suit ? suitLabel(game.trump_suit) : 'انتخاب نشده'} | امتیاز ${game.team_a_name}: ${game.team_a_points} - ${game.team_b_name}: ${game.team_b_points}</p>
+    <p>نوبت: جایگاه ${seatMap[game.current_turn]} | حکم: ${game.trump_suit ? suitLabel(game.trump_suit) : 'انتخاب نشده'}</p>
     <p>دست‌ها: ${game.team_a_tricks} - ${game.team_b_tricks}</p>
   `;
 
@@ -95,8 +133,7 @@ async function pollGame() {
       const form = new FormData();
       form.append('game_id', gameId);
       form.append('card', btn.dataset.card);
-      const resPlay = await fetch('/public/api/play_card.php', { method: 'POST', body: form });
-      const d = await resPlay.json();
+      const d = await apiRequest('/public/api/play_card.php', { method: 'POST', body: form });
       if (!d.ok) alert(d.message);
     };
   });
@@ -108,6 +145,16 @@ async function pollGame() {
 
   const teamNaming = document.getElementById('teamNaming');
   teamNaming.classList.toggle('hidden', game.phase !== 'team_naming');
+
+  if (game.phase === 'finished' && !gameResultShown) {
+    const myTeamA = [0, 2].includes(meSeat);
+    const iWon = (myTeamA && Number(game.team_a_points) > Number(game.team_b_points)) || (!myTeamA && Number(game.team_b_points) > Number(game.team_a_points));
+    const box = document.getElementById('resultOverlay');
+    document.getElementById('resultTitle').textContent = iWon ? '🎉 شما بردید!' : '😔 شما باختید';
+    document.getElementById('resultText').textContent = `${game.team_a_name} ${game.team_a_points} - ${game.team_b_name} ${game.team_b_points}`;
+    box.classList.remove('hidden');
+    gameResultShown = true;
+  }
 }
 
 document.querySelectorAll('#trumpChooser button[data-suit]').forEach(btn => {
@@ -115,8 +162,7 @@ document.querySelectorAll('#trumpChooser button[data-suit]').forEach(btn => {
     const form = new FormData();
     form.append('game_id', gameId);
     form.append('suit', btn.dataset.suit);
-    const res = await fetch('/public/api/choose_trump.php', { method: 'POST', body: form });
-    const data = await res.json();
+    const data = await apiRequest('/public/api/choose_trump.php', { method: 'POST', body: form });
     if (!data.ok) alert(data.message);
   });
 });
@@ -129,8 +175,7 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
     form.append('game_id', gameId);
     form.append('team', btn.dataset.team);
     form.append('name', name);
-    const res = await fetch('/public/api/team_name.php', { method: 'POST', body: form });
-    const data = await res.json();
+    const data = await apiRequest('/public/api/team_name.php', { method: 'POST', body: form });
     if (!data.ok) alert(data.message);
   });
 });
@@ -138,8 +183,7 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
 document.getElementById('startGameBtn').addEventListener('click', async () => {
   const form = new FormData();
   form.append('room_id', roomId);
-  const res = await fetch('/public/api/start_game.php', { method: 'POST', body: form });
-  const data = await res.json();
+  const data = await apiRequest('/public/api/start_game.php', { method: 'POST', body: form });
   if (!data.ok) alert(data.message);
 });
 
@@ -150,8 +194,15 @@ document.getElementById('copyInviteBtn').addEventListener('click', async () => {
 });
 
 async function pollChat() {
-  const res = await fetch(`/public/api/chat.php?room_id=${roomId}&since_id=${lastChatId}`);
-  const data = await res.json();
+  if (chatRequestInFlight) return;
+  chatRequestInFlight = true;
+  const data = await apiRequest(`/public/api/chat.php?room_id=${roomId}&since_id=${lastChatId}`);
+  if (!data.ok) {
+    chatPollDelay = Math.min(chatPollDelay + 1500, 10000);
+    chatRequestInFlight = false;
+    return;
+  }
+  chatPollDelay = 1500;
   const box = document.getElementById('chatBox');
   data.messages.forEach(m => {
     lastChatId = m.id;
@@ -161,24 +212,46 @@ async function pollChat() {
     box.appendChild(item);
   });
   box.scrollTop = box.scrollHeight;
+  chatRequestInFlight = false;
 }
 
 document.getElementById('chatForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
   form.append('room_id', roomId);
-  const res = await fetch('/public/api/chat.php', { method: 'POST', body: form });
-  const data = await res.json();
+  const data = await apiRequest('/public/api/chat.php', { method: 'POST', body: form });
   if (!data.ok) alert(data.message);
   e.target.reset();
 });
+
+document.getElementById('closeResultBtn')?.addEventListener('click', () => {
+  document.getElementById('resultOverlay')?.classList.add('hidden');
+});
+
+document.getElementById('logoutRoomBtn')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await apiRequest('/public/api/logout.php', { method: 'POST' });
+  location.href = '/public/login.php';
+});
+
+function roomTick() {
+  pollRoom().finally(() => {
+    roomPollTimer = setTimeout(roomTick, roomPollDelay);
+  });
+}
+
+function chatTick() {
+  pollChat().finally(() => {
+    chatPollTimer = setTimeout(chatTick, chatPollDelay);
+  });
+}
 
 async function boot() {
   await ensureMembership();
   await pollRoom();
   await pollChat();
-  setInterval(pollRoom, 1500);
-  setInterval(pollChat, 1500);
+  roomTick();
+  chatTick();
 }
 
 boot();
