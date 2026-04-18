@@ -5,7 +5,7 @@ class GameService
     private array $suits = ['hearts', 'diamonds', 'clubs', 'spades'];
     private array $ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
-    public function startGame(int $roomId, int $targetPoints = 7): array
+    public function startGame(int $roomId): array
     {
         $pdo = Database::connection();
         $players = $this->fetchPlayers($roomId);
@@ -20,8 +20,8 @@ class GameService
             $lastDealer = $last->fetchColumn();
             $dealer = $lastDealer === false ? 0 : (((int)$lastDealer + 1) % 4);
 
-            $insert = $pdo->prepare('INSERT INTO games (room_id, status, dealer_position, current_turn, phase, team_a_points, team_b_points, target_points, team_a_name, team_b_name, revision) VALUES (:room_id, "active", :dealer, :turn, "team_naming", 0, 0, :target_points, "تیم آبی", "تیم قرمز", 1)');
-            $insert->execute(['room_id' => $roomId, 'dealer' => $dealer, 'turn' => ($dealer + 1) % 4, 'target_points' => $targetPoints]);
+            $insert = $pdo->prepare('INSERT INTO games (room_id, status, dealer_position, current_turn, phase, team_a_points, team_b_points, team_a_name, team_b_name, revision) VALUES (:room_id, "active", :dealer, :turn, "team_naming", 0, 0, "تیم آبی", "تیم قرمز", 1)');
+            $insert->execute(['room_id' => $roomId, 'dealer' => $dealer, 'turn' => ($dealer + 1) % 4]);
             $gameId = (int)$pdo->lastInsertId();
 
             $pdo->prepare('UPDATE rooms SET status = "playing" WHERE id = :id')->execute(['id' => $roomId]);
@@ -135,7 +135,7 @@ class GameService
             return ['ok' => false, 'message' => 'فقط دیلر می‌تواند حکم را انتخاب کند.'];
         }
 
-        $turn = (int)$game['dealer_position'];
+        $turn = ((int)$game['dealer_position'] + 1) % 4;
         $stmt = $pdo->prepare('UPDATE games SET trump_suit = :suit, phase = "playing", current_turn = :turn_current, trick_leader_position = :turn_leader, revision = revision + 1 WHERE id = :id');
         $stmt->execute([
             'suit' => $suit,
@@ -217,14 +217,13 @@ class GameService
 
         if (empty($hands['0']) && empty($hands['1']) && empty($hands['2']) && empty($hands['3'])) {
             if ($teamATricks > $teamBTricks) {
-                $teamAPoints += ($teamBTricks === 0 ? 2 : 1);
+                $teamAPoints++;
             } else {
-                $teamBPoints += ($teamATricks === 0 ? 2 : 1);
+                $teamBPoints++;
             }
 
             $newDealer = (((int)$game['dealer_position']) + 1) % 4;
-            $targetPoints = (int)($game['target_points'] ?? 7);
-            $phase = ($teamAPoints >= $targetPoints || $teamBPoints >= $targetPoints) ? 'finished' : 'playing';
+            $phase = ($teamAPoints >= 7 || $teamBPoints >= 7) ? 'finished' : 'team_naming';
             $stmt = $pdo->prepare('UPDATE games SET hands_json = :hands, current_trick_json = :trick, current_turn = :turn, trick_leader_position = :leader, team_a_tricks = :a_tricks, team_b_tricks = :b_tricks, team_a_points = :a_points, team_b_points = :b_points, dealer_position = :dealer, phase = :phase, status = :status, revision = revision + 1 WHERE id = :id');
             $stmt->execute([
                 'hands' => json_encode($hands, JSON_UNESCAPED_UNICODE),
