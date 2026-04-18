@@ -35,8 +35,11 @@ class AuthService
     public function login(string $identity, string $password): array
     {
         $pdo = Database::connection();
-        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = :identity OR email = :identity LIMIT 1');
-        $stmt->execute(['identity' => $identity]);
+        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = :identity_username OR email = :identity_email LIMIT 1');
+        $stmt->execute([
+            'identity_username' => $identity,
+            'identity_email' => $identity,
+        ]);
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password_hash'])) {

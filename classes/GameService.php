@@ -369,13 +369,19 @@ class GameService
             $seat = (int)$player['seat_position'];
             $teamA = in_array($seat, [0, 2], true);
             $win = ($teamA && $aWin) || (!$teamA && !$aWin);
-            $stmt = $pdo->prepare('INSERT INTO leaderboard (user_id, games_played, wins, losses, points) VALUES (:user_id, 1, :wins, :losses, :points)
-                ON DUPLICATE KEY UPDATE games_played = games_played + 1, wins = wins + :wins, losses = losses + :losses, points = points + :points');
+            $stmt = $pdo->prepare('INSERT INTO leaderboard (user_id, games_played, wins, losses, points) VALUES (:user_id, 1, :wins_insert, :losses_insert, :points_insert)
+                ON DUPLICATE KEY UPDATE games_played = games_played + 1, wins = wins + :wins_update, losses = losses + :losses_update, points = points + :points_update');
+            $wins = $win ? 1 : 0;
+            $losses = $win ? 0 : 1;
+            $points = $win ? 30 : 10;
             $stmt->execute([
                 'user_id' => $player['user_id'],
-                'wins' => $win ? 1 : 0,
-                'losses' => $win ? 0 : 1,
-                'points' => $win ? 30 : 10,
+                'wins_insert' => $wins,
+                'losses_insert' => $losses,
+                'points_insert' => $points,
+                'wins_update' => $wins,
+                'losses_update' => $losses,
+                'points_update' => $points,
             ]);
         }
     }
