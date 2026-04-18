@@ -16,7 +16,7 @@ let recentTrickCards = [];
 let recentTrickExpiresAt = 0;
 let lastTrickMoveId = 0;
 
-const LAST_TRICK_VISIBLE_MS = 2000;
+const LAST_TRICK_VISIBLE_MS = 1000;
 
 const seatMap = { 0: 'پایین', 1: 'چپ', 2: 'بالا', 3: 'راست' };
 
