@@ -5,12 +5,15 @@ class GameService
     private array $suits = ['hearts', 'diamonds', 'clubs', 'spades'];
     private array $ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
-    public function startGame(int $roomId): array
+    public function startGame(int $roomId, int $targetPoints = 7): array
     {
         $pdo = Database::connection();
         $players = $this->fetchPlayers($roomId);
         if (count($players) !== 4) {
             return ['ok' => false, 'message' => 'برای شروع بازی باید ۴ بازیکن حضور داشته باشند.'];
+        }
+        if ($targetPoints < 1 || $targetPoints > 20) {
+            return ['ok' => false, 'message' => 'تعداد دور باید بین ۱ تا ۲۰ باشد.'];
         }
 
         $pdo->beginTransaction();
@@ -25,7 +28,7 @@ class GameService
             $gameId = (int)$pdo->lastInsertId();
 
             $pdo->prepare('UPDATE rooms SET status = "playing" WHERE id = :id')->execute(['id' => $roomId]);
-            $this->logMove($gameId, null, 'game_started', ['dealer_position' => $dealer]);
+            $this->logMove($gameId, null, 'game_started', ['dealer_position' => $dealer, 'target_points' => $targetPoints]);
 
             $pdo->commit();
             return ['ok' => true, 'game_id' => $gameId];
@@ -216,14 +219,17 @@ class GameService
         $teamBPoints = (int)$game['team_b_points'];
 
         if (empty($hands['0']) && empty($hands['1']) && empty($hands['2']) && empty($hands['3'])) {
+            $targetPoints = $this->readConfiguredTargetPoints($gameId);
             if ($teamATricks > $teamBTricks) {
                 $teamAPoints++;
             } else {
                 $teamBPoints++;
             }
 
-            $newDealer = (((int)$game['dealer_position']) + 1) % 4;
-            $phase = ($teamAPoints >= 7 || $teamBPoints >= 7) ? 'finished' : 'team_naming';
+            $winningTeamIsA = $teamATricks > $teamBTricks;
+            $currentDealer = (int)$game['dealer_position'];
+            $newDealer = $this->resolveNextDealer($currentDealer, $winningTeamIsA);
+            $phase = ($teamAPoints >= $targetPoints || $teamBPoints >= $targetPoints) ? 'finished' : 'team_naming';
             $stmt = $pdo->prepare('UPDATE games SET hands_json = :hands, current_trick_json = :trick, current_turn = :turn, trick_leader_position = :leader, team_a_tricks = :a_tricks, team_b_tricks = :b_tricks, team_a_points = :a_points, team_b_points = :b_points, dealer_position = :dealer, phase = :phase, status = :status, revision = revision + 1 WHERE id = :id');
             $stmt->execute([
                 'hands' => json_encode($hands, JSON_UNESCAPED_UNICODE),
@@ -276,6 +282,7 @@ class GameService
         if ((int)$game['revision'] <= $sinceRevision) {
             return ['ok' => true, 'has_update' => false, 'revision' => (int)$game['revision']];
         }
+        $game['target_points'] = $this->readConfiguredTargetPoints((int)$game['id']);
 
         $players = $this->fetchPlayers((int)$game['room_id']);
         $viewer = array_values(array_filter($players, fn($p) => (int)$p['user_id'] === $userId));
@@ -337,6 +344,33 @@ class GameService
         }
 
         return (int)$winner['seat'];
+    }
+
+    private function resolveNextDealer(int $currentDealer, bool $winningTeamIsA): int
+    {
+        $dealerInTeamA = in_array($currentDealer, [0, 2], true);
+        if (($winningTeamIsA && $dealerInTeamA) || (!$winningTeamIsA && !$dealerInTeamA)) {
+            return $currentDealer;
+        }
+
+        return $winningTeamIsA ? 0 : 1;
+    }
+
+    private function readConfiguredTargetPoints(int $gameId): int
+    {
+        $pdo = Database::connection();
+        $stmt = $pdo->prepare('SELECT payload_json FROM game_moves WHERE game_id = :game_id AND action = "game_started" ORDER BY id DESC LIMIT 1');
+        $stmt->execute(['game_id' => $gameId]);
+        $payload = $stmt->fetchColumn();
+        if (!$payload) {
+            return 7;
+        }
+        $decoded = json_decode((string)$payload, true);
+        $target = (int)($decoded['target_points'] ?? 7);
+        if ($target < 1 || $target > 20) {
+            return 7;
+        }
+        return $target;
     }
 
     private function fetchPlayers(int $roomId): array

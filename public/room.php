@@ -24,6 +24,9 @@ $inviteCode = h($_GET['code'] ?? '');
   <section class="glass panel">
     <h2>بازیکنان اتاق</h2>
     <ul id="players"></ul>
+    <label>تعداد دور برای برد
+      <input id="targetPoints" type="number" min="1" max="20" value="7">
+    </label>
     <button id="startGameBtn" class="hidden">شروع بازی</button>
     <div class="invite-wrap">
       <label>لینک دعوت</label>
@@ -35,6 +38,7 @@ $inviteCode = h($_GET['code'] ?? '');
 
   <section class="glass panel game-section">
     <h2>میز بازی حکم</h2>
+    <div id="scoreHeader" class="score-header"></div>
     <div id="statusBar"></div>
     <div class="table-board" id="tableBoard">
       <div class="seat top" id="seat2"></div>
@@ -62,6 +66,13 @@ $inviteCode = h($_GET['code'] ?? '');
       <div class="team-name-row team-b hidden">
         <label>نام تیم ب<input id="teamBName"></label>
         <button data-team="b" class="teamNameBtn">ثبت تیم ب</button>
+      </div>
+    </div>
+    <div id="resultOverlay" class="result-overlay hidden">
+      <div class="result-box glass">
+        <h3 id="resultTitle"></h3>
+        <p id="resultText"></p>
+        <button id="closeResultBtn" type="button">بستن</button>
       </div>
     </div>
   </section>
