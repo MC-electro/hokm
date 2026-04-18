@@ -24,6 +24,9 @@ $inviteCode = h($_GET['code'] ?? '');
   <section class="glass panel">
     <h2>بازیکنان اتاق</h2>
     <ul id="players"></ul>
+    <label>تعداد دور برای برد
+      <input id="targetPoints" type="number" min="1" max="20" value="7">
+    </label>
     <button id="startGameBtn" class="hidden">شروع بازی</button>
     <div class="invite-wrap">
       <label>لینک دعوت</label>

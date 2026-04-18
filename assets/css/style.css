@@ -72,6 +72,8 @@ button:hover { filter: brightness(1.12); }
 .score-header .team { padding: .35rem .65rem; border-radius: 999px; background: rgba(0,0,0,.25); }
 .score-header .team-a { border: 1px solid #5ec0ff; }
 .score-header .team-b { border: 1px solid #ff7ea8; }
+.center-card-wrap { display: grid; gap: .25rem; justify-items: center; }
+.center-card-player { font-size: .76rem; color: #eef2ff; text-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .result-overlay {
   position: fixed;
   inset: 0;

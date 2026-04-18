@@ -12,6 +12,11 @@ let chatPollTimer = null;
 let roomRequestInFlight = false;
 let chatRequestInFlight = false;
 let gameResultShown = false;
+let recentTrickCards = [];
+let recentTrickExpiresAt = 0;
+let lastTrickMoveId = 0;
+
+const LAST_TRICK_VISIBLE_MS = 2000;
 
 const seatMap = { 0: 'پایین', 1: 'چپ', 2: 'بالا', 3: 'راست' };
 
@@ -107,13 +112,30 @@ function renderSeats(players, game) {
   });
 }
 
+function renderCenterCards(cards, playersBySeat) {
+  document.getElementById('centerCards').innerHTML = cards.map(t => {
+    const seat = Number(t.seat);
+    const playerName = playersBySeat[seat] || `جایگاه ${seatMap[seat]}`;
+    return `
+      <div class="center-card-wrap">
+        <small class="center-card-player">${playerName}</small>
+        <div class="center-card">${cardHtml(t.card)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
 async function pollGame() {
   const data = await apiRequest(`/public/api/game_state.php?room_id=${roomId}&revision=${revision}`);
   if (!data.ok || !data.has_update || !data.state) return;
 
   revision = data.revision;
-  const { game, players, hands, current_trick } = data.state;
+  const { game, players, hands, current_trick, moves } = data.state;
   gameId = game.id;
+  const playersBySeat = {};
+  players.forEach((p) => {
+    playersBySeat[Number(p.seat_position)] = p.username;
+  });
 
   renderSeats(players, game);
   document.getElementById('scoreHeader').innerHTML = `
@@ -138,7 +160,22 @@ async function pollGame() {
     };
   });
 
-  document.getElementById('centerCards').innerHTML = current_trick.map(t => `<div class="center-card">${cardHtml(t.card)}</div>`).join('');
+  const latestFinishedTrick = [...(moves || [])].reverse().find((m) => m.action === 'trick_finished');
+  if (latestFinishedTrick && Number(latestFinishedTrick.id) > lastTrickMoveId) {
+    lastTrickMoveId = Number(latestFinishedTrick.id);
+    const payload = JSON.parse(latestFinishedTrick.payload_json || '{}');
+    recentTrickCards = payload?.trick || [];
+    recentTrickExpiresAt = Date.now() + LAST_TRICK_VISIBLE_MS;
+  }
+
+  if ((current_trick || []).length > 0) {
+    renderCenterCards(current_trick, playersBySeat);
+  } else if (recentTrickCards.length > 0 && Date.now() < recentTrickExpiresAt) {
+    renderCenterCards(recentTrickCards, playersBySeat);
+  } else {
+    renderCenterCards([], playersBySeat);
+    recentTrickCards = [];
+  }
 
   const trumpChooser = document.getElementById('trumpChooser');
   trumpChooser.classList.toggle('hidden', !(game.phase === 'trump_selection' && Number(game.dealer_position) === meSeat));
@@ -181,8 +218,11 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
 });
 
 document.getElementById('startGameBtn').addEventListener('click', async () => {
+  const targetInput = document.getElementById('targetPoints');
+  const targetPoints = Math.max(1, Math.min(20, Number(targetInput?.value || 7)));
   const form = new FormData();
   form.append('room_id', roomId);
+  form.append('target_points', String(targetPoints));
   const data = await apiRequest('/public/api/start_game.php', { method: 'POST', body: form });
   if (!data.ok) alert(data.message);
 });
