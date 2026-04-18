@@ -6,11 +6,26 @@ const appPath = (path) => `${APP_BASE}${path}`;
 async function submitForm(form, url, successUrl) {
   const msg = document.getElementById('msg');
   const formData = new FormData(form);
-  const res = await fetch(url, { method: 'POST', body: formData });
-  const data = await res.json();
-  msg.textContent = data.message;
-  msg.className = data.ok ? 'ok' : 'error';
-  if (data.ok) setTimeout(() => location.href = successUrl, 700);
+  try {
+    const res = await fetch(url, { method: 'POST', body: formData });
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      msg.textContent = 'پاسخ سرور نامعتبر است. لطفاً دوباره تلاش کنید.';
+      msg.className = 'error';
+      console.error('پاسخ JSON نامعتبر:', text);
+      return;
+    }
+
+    msg.textContent = data.message || 'خطای نامشخص';
+    msg.className = data.ok ? 'ok' : 'error';
+    if (data.ok) setTimeout(() => location.href = successUrl, 700);
+  } catch (e) {
+    msg.textContent = 'ارتباط با سرور برقرار نشد.';
+    msg.className = 'error';
+  }
 }
 
 if (loginForm) loginForm.addEventListener('submit', (e) => { e.preventDefault(); submitForm(loginForm, appPath('/api/login.php'), appPath('/lobby.php')); });

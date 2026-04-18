@@ -57,9 +57,9 @@ function appUrl(string $path = ''): string
     $base = rtrim((string)($config['app']['base_url'] ?? ''), '/');
     if ($base === '') {
         $scriptName = (string)($_SERVER['SCRIPT_NAME'] ?? '');
-        if (str_contains($scriptName, '/public/')) {
+        if (strpos($scriptName, '/public/') !== false) {
             $base = substr($scriptName, 0, strpos($scriptName, '/public/') + 7);
-        } elseif (str_ends_with($scriptName, '/public')) {
+        } elseif (substr($scriptName, -7) === '/public') {
             $base = $scriptName;
         }
         $base = preg_replace('#/api$#', '', $base) ?: '';
