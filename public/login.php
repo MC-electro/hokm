@@ -8,6 +8,13 @@
   <link rel="stylesheet" href="<?= h(appUrl('/assets/css/style.css')) ?>">
 </head>
 <body class="auth-page">
+  <header class="topbar glass">
+    <h1>بازی حکم آنلاین</h1>
+    <nav>
+      <a href="<?= h(appUrl('/register.php')) ?>">ثبت‌نام</a>
+      <a href="<?= h(appUrl('/leaderboard.php')) ?>">اسکوردبرد</a>
+    </nav>
+  </header>
   <main class="glass panel auth-card">
     <h1>ورود به بازی حکم</h1>
     <form id="loginForm" class="form">
