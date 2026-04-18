@@ -55,6 +55,15 @@ function appUrl(string $path = ''): string
 {
     $config = require __DIR__ . '/config.php';
     $base = rtrim((string)($config['app']['base_url'] ?? ''), '/');
+    if ($base === '') {
+        $scriptName = (string)($_SERVER['SCRIPT_NAME'] ?? '');
+        if (str_contains($scriptName, '/public/')) {
+            $base = substr($scriptName, 0, strpos($scriptName, '/public/') + 7);
+        } elseif (str_ends_with($scriptName, '/public')) {
+            $base = $scriptName;
+        }
+        $base = preg_replace('#/api$#', '', $base) ?: '';
+    }
     $path = trim($path);
     if ($path === '') {
         return $base === '' ? '/' : $base . '/';

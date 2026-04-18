@@ -68,7 +68,7 @@ $inviteCode = h($_GET['code'] ?? '');
   </section>
 </main>
 <footer><a href="https://donofa.ir/persianart/" target="_blank" rel="noopener">حمایت از ما ❤️</a></footer>
-<script>window.APP_BASE = <?= json_encode(rtrim((require __DIR__ . '/../config/config.php')['app']['base_url'] ?? '', '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
+<script>window.APP_BASE = <?= json_encode(rtrim(appUrl(''), '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
 <script>window.USER_ID = <?= (int)$_SESSION['user_id'] ?>;</script>
 <script src="<?= h(appUrl('/assets/js/room.js')) ?>"></script>
 </body>

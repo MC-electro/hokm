@@ -37,7 +37,7 @@ if (empty($_SESSION['user_id'])) { header('Location: ' . appUrl('/login.php')); 
   </section>
 </main>
 <footer><a href="https://donofa.ir/persianart/" target="_blank" rel="noopener">حمایت از ما ❤️</a></footer>
-<script>window.APP_BASE = <?= json_encode(rtrim((require __DIR__ . '/../config/config.php')['app']['base_url'] ?? '', '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
+<script>window.APP_BASE = <?= json_encode(rtrim(appUrl(''), '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
 <script src="<?= h(appUrl('/assets/js/lobby.js')) ?>"></script>
 </body>
 </html>
