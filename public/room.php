@@ -14,7 +14,11 @@ $inviteCode = h($_GET['code'] ?? '');
 <body data-room-id="<?= $roomId ?>" data-invite-code="<?= $inviteCode ?>">
 <header class="topbar glass">
   <h1>اتاق بازی</h1>
-  <nav><a href="<?= h(appUrl('/lobby.php')) ?>">بازگشت به لابی</a></nav>
+  <nav class="top-actions">
+    <a class="action-btn" href="<?= h(appUrl('/lobby.php')) ?>">بازگشت به لابی</a>
+    <a class="action-btn" href="<?= h(appUrl('/leaderboard.php')) ?>">اسکوردبرد</a>
+    <a class="action-btn danger" href="#" id="logoutRoomBtn">خروج</a>
+  </nav>
 </header>
 <main class="room-layout">
   <section class="glass panel">

@@ -114,8 +114,7 @@ async function pollGame() {
       const form = new FormData();
       form.append('game_id', gameId);
       form.append('card', btn.dataset.card);
-      const resPlay = await fetch(appPath('/api/play_card.php'), { method: 'POST', body: form });
-      const d = await resPlay.json();
+      const d = await apiRequest(appPath('/api/play_card.php'), { method: 'POST', body: form });
       if (!d.ok) alert(d.message);
     };
   });
@@ -173,6 +172,12 @@ document.getElementById('copyInviteBtn').addEventListener('click', async () => {
   const input = document.getElementById('inviteLink');
   await navigator.clipboard.writeText(input.value);
   alert('لینک دعوت کپی شد.');
+});
+
+document.getElementById('logoutRoomBtn')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await apiRequest(appPath('/api/logout.php'), { method: 'POST' });
+  location.href = appPath('/login.php');
 });
 
 async function pollChat() {

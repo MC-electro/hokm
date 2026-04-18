@@ -136,8 +136,13 @@ class GameService
         }
 
         $turn = ((int)$game['dealer_position'] + 1) % 4;
-        $stmt = $pdo->prepare('UPDATE games SET trump_suit = :suit, phase = "playing", current_turn = :turn, trick_leader_position = :turn, revision = revision + 1 WHERE id = :id');
-        $stmt->execute(['suit' => $suit, 'turn' => $turn, 'id' => $gameId]);
+        $stmt = $pdo->prepare('UPDATE games SET trump_suit = :suit, phase = "playing", current_turn = :turn_current, trick_leader_position = :turn_leader, revision = revision + 1 WHERE id = :id');
+        $stmt->execute([
+            'suit' => $suit,
+            'turn_current' => $turn,
+            'turn_leader' => $turn,
+            'id' => $gameId
+        ]);
         $this->logMove($gameId, $userId, 'trump_selected', ['trump_suit' => $suit]);
 
         return ['ok' => true];
@@ -281,9 +286,11 @@ class GameService
 
         $hands = json_decode($game['hands_json'] ?: '{}', true);
         $maskedHands = [];
+        $visibleCount = $game['phase'] === 'trump_selection' ? 5 : 13;
         foreach ($players as $p) {
             $seat = (int)$p['seat_position'];
             $cards = $hands[(string)$seat] ?? [];
+            $cards = array_slice($cards, 0, $visibleCount);
             $maskedHands[(string)$seat] = $seat === $viewerSeat ? $cards : array_fill(0, count($cards), 'hidden');
         }
 
