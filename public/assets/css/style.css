@@ -1,0 +1,82 @@
+:root {
+  --bg: #0b1020;
+  --bg2: #151d33;
+  --glass: rgba(255,255,255,.08);
+  --text: #f3f5ff;
+  --muted: #9aa5c8;
+  --accent: #6e7cff;
+  --ok: #3ee58e;
+  --danger: #ff6f91;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--text); font-family: Tahoma, sans-serif;
+  background: radial-gradient(circle at 10% 20%, #1e2f53 0%, var(--bg) 40%, #05070f 100%);
+  min-height: 100vh;
+}
+a { color: #8eb6ff; }
+footer { text-align: center; padding: 1rem; }
+.glass { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; }
+.panel { padding: 1rem; }
+.top-actions { display: flex; gap: .45rem; flex-wrap: wrap; }
+.action-btn {
+  text-decoration: none; color: #fff; padding: .45rem .8rem; border-radius: 10px;
+  background: linear-gradient(45deg, #4f5dce, #6f4dc9); border: 1px solid rgba(255,255,255,.25);
+}
+.action-btn.danger { background: linear-gradient(45deg, #b42b59, #d43d6f); }
+.auth-page { display: grid; place-items: center; }
+.auth-card { width: min(95vw, 420px); margin-top: 4rem; }
+.form { display: grid; gap: .75rem; }
+input, button {
+  width: 100%; border: 1px solid rgba(255,255,255,.18); border-radius: 10px;
+  background: rgba(15,22,42,.75); color: var(--text); padding: .7rem .8rem;
+}
+button { cursor: pointer; background: linear-gradient(45deg, #5a5ee8, #7f55ff); font-weight: bold; }
+button:hover { filter: brightness(1.12); }
+.ok { color: var(--ok); } .error { color: var(--danger); } .muted { color: var(--muted); }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: .5rem 1rem; margin: .75rem; }
+.layout-two { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); padding: 1rem; }
+.room-layout { display: grid; gap: 1rem; grid-template-columns: 320px 1fr 320px; padding: 1rem; }
+
+.table-board {
+  position: relative; min-height: 460px; border-radius: 22px;
+  border: 2px solid rgba(255,255,255,.15); background: linear-gradient(155deg, #07452f, #082d26);
+  margin-bottom: 1rem; overflow: hidden;
+}
+.seat { position: absolute; min-width: 160px; max-width: 220px; }
+.seat.bottom { bottom: 1rem; left: 50%; transform: translateX(-50%); }
+.seat.top { top: 1rem; left: 50%; transform: translateX(-50%); }
+.seat.left { left: 1rem; top: 50%; transform: translateY(-50%); }
+.seat.right { right: 1rem; top: 50%; transform: translateY(-50%); }
+.seat-player { border-radius: 12px; padding: .6rem; background: rgba(0,0,0,.35); display: grid; gap: .2rem; }
+.team-a { box-shadow: inset 0 0 0 2px #5ec0ff; }
+.team-b { box-shadow: inset 0 0 0 2px #ff7ea8; }
+
+.center-cards { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); display: flex; gap: .7rem; }
+.hand { display: flex; gap: .45rem; flex-wrap: wrap; min-height: 124px; }
+.playing-card {
+  width: 78px; height: 110px; border-radius: 12px; border: 1px solid rgba(255,255,255,.45);
+  background: linear-gradient(to bottom, #fff, #f0f2ff); color: #111; display: grid; place-items: center;
+  transition: transform .2s, box-shadow .2s;
+}
+.playing-card small { font-size: .7rem; }
+.playing-card.hearts, .playing-card.diamonds { color: #c4153f; }
+.playing-card.spades, .playing-card.clubs { color: #202638; }
+.playing-card.back { background: repeating-linear-gradient(45deg, #394b76 0 8px, #212f50 8px 16px); }
+.playing-card.playable:hover { transform: translateY(-10px) scale(1.04); box-shadow: 0 10px 20px rgba(0,0,0,.3); }
+.center-card .playing-card { animation: drop .25s ease; }
+@keyframes drop { from { transform: scale(.6) translateY(-30px); opacity: .2; } to { transform: scale(1); opacity: 1; } }
+
+.chat-box { height: 320px; overflow-y: auto; padding: .5rem; background: rgba(0,0,0,.3); border-radius: 10px; }
+.chat-item { padding: .35rem .5rem; border-bottom: 1px solid rgba(255,255,255,.06); }
+.chat-form { display: flex; gap: .45rem; margin-top: .5rem; }
+.chat-form input { flex: 1; min-height: 48px; font-size: 1rem; padding: .85rem .9rem; }
+.chat-form button { width: auto; min-width: 96px; }
+.team-name-row { display: grid; gap: .45rem; margin-bottom: .7rem; }
+.hidden { display: none; }
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th, .leaderboard-table td { border-bottom: 1px solid rgba(255,255,255,.2); padding: .6rem; text-align: center; }
+
+@media (max-width: 1100px) {
+  .room-layout { grid-template-columns: 1fr; }
+}
