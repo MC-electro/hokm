@@ -7,6 +7,7 @@ let lastChatId = 0;
 let meSeat = 0;
 const APP_BASE = window.APP_BASE || '';
 const appPath = (path) => `${APP_BASE}${path}`;
+const myUserId = Number(window.USER_ID || 0);
 
 const seatMap = { 0: 'پایین', 1: 'چپ', 2: 'بالا', 3: 'راست' };
 
@@ -28,12 +29,26 @@ async function ensureMembership() {
   const form = new FormData();
   form.append('room_id', roomId);
   if (inviteCode) form.append('invite_code', inviteCode);
-  await fetch(appPath('/api/join_room.php'), { method: 'POST', body: form });
+  await apiRequest(appPath('/api/join_room.php'), { method: 'POST', body: form });
+}
+
+async function apiRequest(url, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error('پاسخ JSON نامعتبر:', url, text);
+      return { ok: false, message: 'پاسخ سرور نامعتبر است.' };
+    }
+  } catch (e) {
+    return { ok: false, message: 'ارتباط با سرور برقرار نشد.' };
+  }
 }
 
 async function pollRoom() {
-  const res = await fetch(appPath(`/api/room_state.php?room_id=${roomId}`));
-  const data = await res.json();
+  const data = await apiRequest(appPath(`/api/room_state.php?room_id=${roomId}`));
   if (!data.ok) {
     document.getElementById('roomMsg').textContent = data.message;
     return;
@@ -42,8 +57,11 @@ async function pollRoom() {
   document.getElementById('inviteLink').value = `${location.origin}${data.invite_link}`;
   document.getElementById('players').innerHTML = data.players.map(p => `<li>${p.username} - جایگاه ${seatMap[p.seat_position]}</li>`).join('');
 
-  const myPlayer = data.players.find(p => Number(p.user_id) === Number(window.USER_ID || 0));
+  const myPlayer = data.players.find(p => Number(p.user_id) === myUserId);
   if (myPlayer) meSeat = Number(myPlayer.seat_position);
+  const startBtn = document.getElementById('startGameBtn');
+  const canStart = Number(data.room.owner_id) === myUserId && data.players.length === 4 && data.room.status === 'waiting';
+  startBtn.classList.toggle('hidden', !canStart);
 
   await pollGame();
 }
@@ -75,8 +93,7 @@ function renderSeats(players, game) {
 }
 
 async function pollGame() {
-  const res = await fetch(appPath(`/api/game_state.php?room_id=${roomId}&revision=${revision}`));
-  const data = await res.json();
+  const data = await apiRequest(appPath(`/api/game_state.php?room_id=${roomId}&revision=${revision}`));
   if (!data.ok || !data.has_update || !data.state) return;
 
   revision = data.revision;
@@ -109,7 +126,17 @@ async function pollGame() {
   trumpChooser.classList.toggle('hidden', !(game.phase === 'trump_selection' && Number(game.dealer_position) === meSeat));
 
   const teamNaming = document.getElementById('teamNaming');
-  teamNaming.classList.toggle('hidden', game.phase !== 'team_naming');
+  const showTeamNaming = game.phase === 'team_naming' && (meSeat === 0 || meSeat === 1);
+  teamNaming.classList.toggle('hidden', !showTeamNaming);
+  document.querySelectorAll('.team-name-row').forEach(el => el.classList.add('hidden'));
+  if (showTeamNaming) {
+    if (meSeat === 0) {
+      document.querySelector('.team-name-row.team-a').classList.remove('hidden');
+    }
+    if (meSeat === 1) {
+      document.querySelector('.team-name-row.team-b').classList.remove('hidden');
+    }
+  }
 }
 
 document.querySelectorAll('#trumpChooser button[data-suit]').forEach(btn => {
@@ -117,8 +144,7 @@ document.querySelectorAll('#trumpChooser button[data-suit]').forEach(btn => {
     const form = new FormData();
     form.append('game_id', gameId);
     form.append('suit', btn.dataset.suit);
-    const res = await fetch(appPath('/api/choose_trump.php'), { method: 'POST', body: form });
-    const data = await res.json();
+    const data = await apiRequest(appPath('/api/choose_trump.php'), { method: 'POST', body: form });
     if (!data.ok) alert(data.message);
   });
 });
@@ -131,8 +157,7 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
     form.append('game_id', gameId);
     form.append('team', btn.dataset.team);
     form.append('name', name);
-    const res = await fetch(appPath('/api/team_name.php'), { method: 'POST', body: form });
-    const data = await res.json();
+    const data = await apiRequest(appPath('/api/team_name.php'), { method: 'POST', body: form });
     if (!data.ok) alert(data.message);
   });
 });
@@ -140,8 +165,7 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
 document.getElementById('startGameBtn').addEventListener('click', async () => {
   const form = new FormData();
   form.append('room_id', roomId);
-  const res = await fetch(appPath('/api/start_game.php'), { method: 'POST', body: form });
-  const data = await res.json();
+  const data = await apiRequest(appPath('/api/start_game.php'), { method: 'POST', body: form });
   if (!data.ok) alert(data.message);
 });
 
@@ -152,10 +176,10 @@ document.getElementById('copyInviteBtn').addEventListener('click', async () => {
 });
 
 async function pollChat() {
-  const res = await fetch(appPath(`/api/chat.php?room_id=${roomId}&since_id=${lastChatId}`));
-  const data = await res.json();
+  const data = await apiRequest(appPath(`/api/chat.php?room_id=${roomId}&since_id=${lastChatId}`));
+  if (!data.ok) return;
   const box = document.getElementById('chatBox');
-  data.messages.forEach(m => {
+  (data.messages || []).forEach(m => {
     lastChatId = m.id;
     const item = document.createElement('div');
     item.className = 'chat-item';
@@ -169,8 +193,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
   form.append('room_id', roomId);
-  const res = await fetch(appPath('/api/chat.php'), { method: 'POST', body: form });
-  const data = await res.json();
+  const data = await apiRequest(appPath('/api/chat.php'), { method: 'POST', body: form });
   if (!data.ok) alert(data.message);
   e.target.reset();
 });

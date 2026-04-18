@@ -20,7 +20,7 @@ $inviteCode = h($_GET['code'] ?? '');
   <section class="glass panel">
     <h2>بازیکنان اتاق</h2>
     <ul id="players"></ul>
-    <button id="startGameBtn">شروع بازی</button>
+    <button id="startGameBtn" class="hidden">شروع بازی</button>
     <div class="invite-wrap">
       <label>لینک دعوت</label>
       <input id="inviteLink" readonly>
@@ -51,10 +51,14 @@ $inviteCode = h($_GET['code'] ?? '');
     </div>
     <div id="teamNaming" class="hidden">
       <h3>نام‌گذاری تیم</h3>
-      <label>نام تیم الف<input id="teamAName"></label>
-      <button data-team="a" class="teamNameBtn">ثبت تیم الف</button>
-      <label>نام تیم ب<input id="teamBName"></label>
-      <button data-team="b" class="teamNameBtn">ثبت تیم ب</button>
+      <div class="team-name-row team-a hidden">
+        <label>نام تیم الف<input id="teamAName"></label>
+        <button data-team="a" class="teamNameBtn">ثبت تیم الف</button>
+      </div>
+      <div class="team-name-row team-b hidden">
+        <label>نام تیم ب<input id="teamBName"></label>
+        <button data-team="b" class="teamNameBtn">ثبت تیم ب</button>
+      </div>
     </div>
   </section>
 

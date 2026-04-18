@@ -56,7 +56,7 @@ class GameService
         }
 
         $seat = (int)$user['seat_position'];
-        if (($team === 'a' && !in_array($seat, [0, 2], true)) || ($team === 'b' && !in_array($seat, [1, 3], true))) {
+        if (($team === 'a' && $seat !== 0) || ($team === 'b' && $seat !== 1)) {
             return ['ok' => false, 'message' => 'شما لیدر این تیم نیستید.'];
         }
 
@@ -175,7 +175,7 @@ class GameService
             if ($suit !== $leadSuit) {
                 $hasLeadSuit = false;
                 foreach ($hands[(string)$seat] as $handCard) {
-                    if (str_starts_with($handCard, $leadSuit . '-')) {
+                    if (strpos($handCard, $leadSuit . '-') === 0) {
                         $hasLeadSuit = true;
                         break;
                     }

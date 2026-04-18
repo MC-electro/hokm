@@ -64,7 +64,8 @@ button:hover { filter: brightness(1.12); }
 .chat-box { height: 320px; overflow-y: auto; padding: .5rem; background: rgba(0,0,0,.3); border-radius: 10px; }
 .chat-item { padding: .35rem .5rem; border-bottom: 1px solid rgba(255,255,255,.06); }
 .chat-form { display: flex; gap: .45rem; margin-top: .5rem; }
-.chat-form input { flex: 1; }
+.chat-form input { flex: 1; min-height: 48px; font-size: 1rem; padding: .85rem .9rem; }
+.team-name-row { display: grid; gap: .45rem; margin-bottom: .7rem; }
 .hidden { display: none; }
 .leaderboard-table { width: 100%; border-collapse: collapse; }
 .leaderboard-table th, .leaderboard-table td { border-bottom: 1px solid rgba(255,255,255,.2); padding: .6rem; text-align: center; }
