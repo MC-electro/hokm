@@ -5,7 +5,6 @@ let gameId = null;
 let revision = 0;
 let lastChatId = 0;
 let meSeat = 0;
-let lastCompletedTrick = { cards: [], at: 0 };
 const APP_BASE = window.APP_BASE || '';
 const appPath = (path) => `${APP_BASE}${path}`;
 const myUserId = Number(window.USER_ID || 0);
@@ -61,10 +60,8 @@ async function pollRoom() {
   const myPlayer = data.players.find(p => Number(p.user_id) === myUserId);
   if (myPlayer) meSeat = Number(myPlayer.seat_position);
   const startBtn = document.getElementById('startGameBtn');
-  const targetWrap = document.getElementById('roundTargetWrap');
   const canStart = Number(data.room.owner_id) === myUserId && data.players.length === 4 && data.room.status === 'waiting';
   startBtn.classList.toggle('hidden', !canStart);
-  targetWrap.classList.toggle('hidden', !canStart);
 
   await pollGame();
 }
@@ -77,13 +74,11 @@ function relativeSeat(targetSeat) {
 function renderSeats(players, game) {
   const teamAName = game.team_a_name || 'تیم شما';
   const teamBName = game.team_b_name || 'حریف';
-  const teamAScore = Number(game.team_a_points || 0);
-  const teamBScore = Number(game.team_b_points || 0);
   players.forEach(p => {
     const realSeat = Number(p.seat_position);
     const rel = relativeSeat(realSeat);
     const isTeamA = [0, 2].includes(realSeat);
-    const label = isTeamA ? `${teamAName} | امتیاز: ${teamAScore} | دور برده: ${teamAScore}` : `${teamBName} | امتیاز: ${teamBScore} | دور برده: ${teamBScore}`;
+    const label = isTeamA ? teamAName : teamBName;
     const tag = ([0, 2].includes(realSeat) === [0, 2].includes(meSeat)) ? 'هم‌تیمی شما' : 'حریف';
     const dealer = Number(game.dealer_position) === realSeat ? '👑 دیلر' : '';
     document.getElementById(`seat${{bottom:0,left:1,top:2,right:3}[rel]}`).innerHTML = `
@@ -104,14 +99,10 @@ async function pollGame() {
   revision = data.revision;
   const { game, players, hands, current_trick } = data.state;
   gameId = game.id;
-  const playersBySeat = {};
-  players.forEach((p) => { playersBySeat[Number(p.seat_position)] = p.username; });
 
   renderSeats(players, game);
-  const teamAName = game.team_a_name || 'تیم الف';
-  const teamBName = game.team_b_name || 'تیم ب';
   document.getElementById('statusBar').innerHTML = `
-    <p>نوبت: جایگاه ${seatMap[game.current_turn]} | حکم: ${game.trump_suit ? suitLabel(game.trump_suit) : 'انتخاب نشده'} | امتیاز هدف: ${game.target_points || 7}</p>
+    <p>نوبت: جایگاه ${seatMap[game.current_turn]} | حکم: ${game.trump_suit ? suitLabel(game.trump_suit) : 'انتخاب نشده'} | امتیاز ${game.team_a_name}: ${game.team_a_points} - ${game.team_b_name}: ${game.team_b_points}</p>
     <p>دست‌ها: ${game.team_a_tricks} - ${game.team_b_tricks}</p>
   `;
 
@@ -128,28 +119,7 @@ async function pollGame() {
     };
   });
 
-  const latestTrickMove = [...(data.state.moves || [])].reverse().find(m => m.action === 'trick_finished');
-  if (latestTrickMove) {
-    try {
-      const payload = JSON.parse(latestTrickMove.payload_json || '{}');
-      if (Array.isArray(payload.trick)) {
-        lastCompletedTrick = { cards: payload.trick, at: Date.now() };
-      }
-    } catch (e) {
-      // intentionally ignored
-    }
-  }
-
-  let cardsToShow = current_trick;
-  if (!cardsToShow.length && lastCompletedTrick.cards.length && (Date.now() - lastCompletedTrick.at < 1000)) {
-    cardsToShow = lastCompletedTrick.cards;
-  }
-  document.getElementById('centerCards').innerHTML = cardsToShow.map(t => `
-    <div class="center-card-wrap">
-      <small class="card-owner">${playersBySeat[Number(t.seat)] || 'بازیکن'}</small>
-      <div class="center-card">${cardHtml(t.card)}</div>
-    </div>
-  `).join('');
+  document.getElementById('centerCards').innerHTML = current_trick.map(t => `<div class="center-card">${cardHtml(t.card)}</div>`).join('');
 
   const trumpChooser = document.getElementById('trumpChooser');
   trumpChooser.classList.toggle('hidden', !(game.phase === 'trump_selection' && Number(game.dealer_position) === meSeat));
@@ -194,7 +164,6 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
 document.getElementById('startGameBtn').addEventListener('click', async () => {
   const form = new FormData();
   form.append('room_id', roomId);
-  form.append('target_points', document.getElementById('roundTarget').value || '7');
   const data = await apiRequest(appPath('/api/start_game.php'), { method: 'POST', body: form });
   if (!data.ok) alert(data.message);
 });

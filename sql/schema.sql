@@ -50,7 +50,6 @@ CREATE TABLE games (
   team_b_name VARCHAR(50) NOT NULL DEFAULT 'تیم قرمز',
   team_a_points INT NOT NULL DEFAULT 0,
   team_b_points INT NOT NULL DEFAULT 0,
-  target_points INT NOT NULL DEFAULT 7,
   team_a_tricks INT NOT NULL DEFAULT 0,
   team_b_tricks INT NOT NULL DEFAULT 0,
   hands_json JSON NULL,
