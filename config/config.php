@@ -9,6 +9,7 @@ return [
         'charset' => 'utf8mb4',
     ],
     'app' => [
+        // مثال: '' برای ریشه دامنه یا '/hokm/public' برای اجرای پروژه داخل زیرمسیر
         'base_url' => '',
         'poll_interval_ms' => 1500,
         'session_name' => 'hokm_session',

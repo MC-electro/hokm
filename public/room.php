@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-if (empty($_SESSION['user_id'])) { header('Location: /login.php'); exit; }
+if (empty($_SESSION['user_id'])) { header('Location: ' . appUrl('/login.php')); exit; }
 $roomId = (int)($_GET['id'] ?? 0);
 $inviteCode = h($_GET['code'] ?? '');
 ?>
@@ -9,12 +9,12 @@ $inviteCode = h($_GET['code'] ?? '');
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>اتاق بازی | حکم آنلاین</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="<?= h(appUrl('/assets/css/style.css')) ?>">
 </head>
 <body data-room-id="<?= $roomId ?>" data-invite-code="<?= $inviteCode ?>">
 <header class="topbar glass">
   <h1>اتاق بازی</h1>
-  <nav><a href="/lobby.php">بازگشت به لابی</a></nav>
+  <nav><a href="<?= h(appUrl('/lobby.php')) ?>">بازگشت به لابی</a></nav>
 </header>
 <main class="room-layout">
   <section class="glass panel">
@@ -68,7 +68,8 @@ $inviteCode = h($_GET['code'] ?? '');
   </section>
 </main>
 <footer><a href="https://donofa.ir/persianart/" target="_blank" rel="noopener">حمایت از ما ❤️</a></footer>
+<script>window.APP_BASE = <?= json_encode(rtrim((require __DIR__ . '/../config/config.php')['app']['base_url'] ?? '', '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
 <script>window.USER_ID = <?= (int)$_SESSION['user_id'] ?>;</script>
-<script src="/assets/js/room.js"></script>
+<script src="<?= h(appUrl('/assets/js/room.js')) ?>"></script>
 </body>
 </html>

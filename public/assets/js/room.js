@@ -5,6 +5,8 @@ let gameId = null;
 let revision = 0;
 let lastChatId = 0;
 let meSeat = 0;
+const APP_BASE = window.APP_BASE || '';
+const appPath = (path) => `${APP_BASE}${path}`;
 
 const seatMap = { 0: 'پایین', 1: 'چپ', 2: 'بالا', 3: 'راست' };
 
@@ -26,11 +28,11 @@ async function ensureMembership() {
   const form = new FormData();
   form.append('room_id', roomId);
   if (inviteCode) form.append('invite_code', inviteCode);
-  await fetch('/api/join_room.php', { method: 'POST', body: form });
+  await fetch(appPath('/api/join_room.php'), { method: 'POST', body: form });
 }
 
 async function pollRoom() {
-  const res = await fetch(`/api/room_state.php?room_id=${roomId}`);
+  const res = await fetch(appPath(`/api/room_state.php?room_id=${roomId}`));
   const data = await res.json();
   if (!data.ok) {
     document.getElementById('roomMsg').textContent = data.message;
@@ -73,7 +75,7 @@ function renderSeats(players, game) {
 }
 
 async function pollGame() {
-  const res = await fetch(`/api/game_state.php?room_id=${roomId}&revision=${revision}`);
+  const res = await fetch(appPath(`/api/game_state.php?room_id=${roomId}&revision=${revision}`));
   const data = await res.json();
   if (!data.ok || !data.has_update || !data.state) return;
 
@@ -95,7 +97,7 @@ async function pollGame() {
       const form = new FormData();
       form.append('game_id', gameId);
       form.append('card', btn.dataset.card);
-      const resPlay = await fetch('/api/play_card.php', { method: 'POST', body: form });
+      const resPlay = await fetch(appPath('/api/play_card.php'), { method: 'POST', body: form });
       const d = await resPlay.json();
       if (!d.ok) alert(d.message);
     };
@@ -115,7 +117,7 @@ document.querySelectorAll('#trumpChooser button[data-suit]').forEach(btn => {
     const form = new FormData();
     form.append('game_id', gameId);
     form.append('suit', btn.dataset.suit);
-    const res = await fetch('/api/choose_trump.php', { method: 'POST', body: form });
+    const res = await fetch(appPath('/api/choose_trump.php'), { method: 'POST', body: form });
     const data = await res.json();
     if (!data.ok) alert(data.message);
   });
@@ -129,7 +131,7 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
     form.append('game_id', gameId);
     form.append('team', btn.dataset.team);
     form.append('name', name);
-    const res = await fetch('/api/team_name.php', { method: 'POST', body: form });
+    const res = await fetch(appPath('/api/team_name.php'), { method: 'POST', body: form });
     const data = await res.json();
     if (!data.ok) alert(data.message);
   });
@@ -138,7 +140,7 @@ document.querySelectorAll('.teamNameBtn').forEach(btn => {
 document.getElementById('startGameBtn').addEventListener('click', async () => {
   const form = new FormData();
   form.append('room_id', roomId);
-  const res = await fetch('/api/start_game.php', { method: 'POST', body: form });
+  const res = await fetch(appPath('/api/start_game.php'), { method: 'POST', body: form });
   const data = await res.json();
   if (!data.ok) alert(data.message);
 });
@@ -150,7 +152,7 @@ document.getElementById('copyInviteBtn').addEventListener('click', async () => {
 });
 
 async function pollChat() {
-  const res = await fetch(`/api/chat.php?room_id=${roomId}&since_id=${lastChatId}`);
+  const res = await fetch(appPath(`/api/chat.php?room_id=${roomId}&since_id=${lastChatId}`));
   const data = await res.json();
   const box = document.getElementById('chatBox');
   data.messages.forEach(m => {
@@ -167,7 +169,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
   form.append('room_id', roomId);
-  const res = await fetch('/api/chat.php', { method: 'POST', body: form });
+  const res = await fetch(appPath('/api/chat.php'), { method: 'POST', body: form });
   const data = await res.json();
   if (!data.ok) alert(data.message);
   e.target.reset();

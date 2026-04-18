@@ -1,5 +1,8 @@
+const APP_BASE = window.APP_BASE || '';
+const appPath = (path) => `${APP_BASE}${path}`;
+
 async function loadLeaderboard() {
-  const res = await fetch('/api/leaderboard.php');
+  const res = await fetch(appPath('/api/leaderboard.php'));
   const data = await res.json();
   const body = document.getElementById('leaderboardBody');
   body.innerHTML = data.items.map((item, i) => `

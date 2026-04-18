@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ورود | بازی حکم آنلاین</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="<?= h(appUrl('/assets/css/style.css')) ?>">
 </head>
 <body class="auth-page">
   <main class="glass panel auth-card">
@@ -18,11 +18,12 @@
         <input type="password" name="password" required>
       </label>
       <button type="submit">ورود</button>
-      <p class="muted">حساب ندارید؟ <a href="/register.php">ثبت‌نام</a></p>
+      <p class="muted">حساب ندارید؟ <a href="<?= h(appUrl('/register.php')) ?>">ثبت‌نام</a></p>
       <p id="msg"></p>
     </form>
   </main>
   <footer><a href="https://donofa.ir/persianart/" target="_blank" rel="noopener">حمایت از ما ❤️</a></footer>
-  <script src="/assets/js/auth.js"></script>
+  <script>window.APP_BASE = <?= json_encode(rtrim((require __DIR__ . '/../config/config.php')['app']['base_url'] ?? '', '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
+  <script src="<?= h(appUrl('/assets/js/auth.js')) ?>"></script>
 </body>
 </html>

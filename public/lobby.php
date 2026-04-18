@@ -1,19 +1,19 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-if (empty($_SESSION['user_id'])) { header('Location: /login.php'); exit; }
+if (empty($_SESSION['user_id'])) { header('Location: ' . appUrl('/login.php')); exit; }
 ?>
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>لابی | حکم آنلاین</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="<?= h(appUrl('/assets/css/style.css')) ?>">
 </head>
 <body>
 <header class="topbar glass">
   <h1>لابی بازی حکم</h1>
   <nav>
-    <a href="/leaderboard.php">لیدربرد</a>
+    <a href="<?= h(appUrl('/leaderboard.php')) ?>">لیدربرد</a>
     <a href="#" id="logoutBtn">خروج</a>
   </nav>
 </header>
@@ -37,6 +37,7 @@ if (empty($_SESSION['user_id'])) { header('Location: /login.php'); exit; }
   </section>
 </main>
 <footer><a href="https://donofa.ir/persianart/" target="_blank" rel="noopener">حمایت از ما ❤️</a></footer>
-<script src="/assets/js/lobby.js"></script>
+<script>window.APP_BASE = <?= json_encode(rtrim((require __DIR__ . '/../config/config.php')['app']['base_url'] ?? '', '/'), JSON_UNESCAPED_UNICODE) ?>;</script>
+<script src="<?= h(appUrl('/assets/js/lobby.js')) ?>"></script>
 </body>
 </html>

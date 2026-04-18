@@ -50,3 +50,17 @@ function sanitizeText(?string $text, int $max = 255): string
     $text = preg_replace('/\s+/', ' ', $text);
     return mb_substr($text, 0, $max);
 }
+
+function appUrl(string $path = ''): string
+{
+    $config = require __DIR__ . '/config.php';
+    $base = rtrim((string)($config['app']['base_url'] ?? ''), '/');
+    $path = trim($path);
+    if ($path === '') {
+        return $base === '' ? '/' : $base . '/';
+    }
+    if ($path[0] !== '/') {
+        $path = '/' . $path;
+    }
+    return $base . $path;
+}

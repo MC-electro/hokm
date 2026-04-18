@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
 if (!empty($_SESSION['user_id'])) {
-    header('Location: /lobby.php');
+    header('Location: ' . appUrl('/lobby.php'));
     exit;
 }
-header('Location: /login.php');
+header('Location: ' . appUrl('/login.php'));
 exit;
